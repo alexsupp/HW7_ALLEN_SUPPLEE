@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        serverwindow.cpp
+        serverwindow.cpp \
+    SSLServer.cpp \
+    serverworker.cpp
 
-HEADERS  += serverwindow.h
+HEADERS  += serverwindow.h \
+    SSLServer.h \
+    serverworker.h
 
 FORMS    += serverwindow.ui

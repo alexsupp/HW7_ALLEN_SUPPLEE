@@ -2,12 +2,14 @@
 #define SERVERWORKER_H
 
 #include <QObject>
+#include <QDebug>
+#include <QSslSocket>
 
 class serverWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit serverWorker(QObject *parent = 0);
+    explicit serverWorker(QSslSocket *clientConnection, QObject *parent = 0);
 
 signals:
 
