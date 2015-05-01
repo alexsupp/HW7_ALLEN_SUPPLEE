@@ -23,6 +23,7 @@ protected:
 private:
     // a list to keep track of the sockets that we have created
     QList<QSslSocket *> m_secureSocketList;
+    QMap<QSslSocket*,QString> m_users;
 };
 
 #endif // SSLSERVER_H
