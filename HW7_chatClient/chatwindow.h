@@ -12,12 +12,11 @@ class chatWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit chatWindow(QWidget *parent = 0);
+    explicit chatWindow(QString name, QWidget *parent = 0);
     ~chatWindow();
 
 private slots:
     void on_sendButton_clicked();
-
     void on_lineEditMessage_textChanged(const QString &arg1);
 
 private:

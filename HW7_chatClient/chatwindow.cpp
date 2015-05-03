@@ -2,11 +2,12 @@
 #include "ui_chatwindow.h"
 #include <QString>
 
-chatWindow::chatWindow(QWidget *parent) :
+chatWindow::chatWindow(QString name, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::chatWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Chat with " + name);
 }
 
 chatWindow::~chatWindow()
