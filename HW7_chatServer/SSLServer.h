@@ -2,27 +2,38 @@
 #define SSLSERVER_H
 
 #include <QTcpServer>
+#include <QObject>
 #include <QSslSocket>
 #include <QSslKey>
 #include <QList>
+#include <QSet>
+#include <QMap>
+#include <QString>
 
 class SSLServer : public QTcpServer
 {
     Q_OBJECT
 
 public:
-    SSLServer(QObject *parent = 0);
+    explicit SSLServer(QObject *parent = 0);
     // Since we have a new version of incomingComing connection, we have
     // to keep track of the SSL sockets created and return them with a
     // a revised version of nextPendingConnection.
-    QSslSocket *nextPendingConnection();
+    //QSslSocket *nextPendingConnection();
+signals:
+    void updateClients(QString);
+    void newMessage(QString);
+private slots:
+    void readyRead();
+    void disconnected();
+    void sendUserList();
 protected:
     // override of QTcpServer::incomingConnection(), see documentation 
     // for QSslSocket.  
     void incomingConnection(qintptr socketDescriptor);
 private:
     // a list to keep track of the sockets that we have created
-    QList<QSslSocket *> m_secureSocketList;
+    QSet<QSslSocket *> m_clients;
     QMap<QSslSocket*,QString> m_users;
 };
 

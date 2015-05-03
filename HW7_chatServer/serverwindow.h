@@ -6,6 +6,9 @@
 #include <SSLServer.h>
 #include <QMessageBox>
 #include <QList>
+#include <QSet>
+#include <QString>
+#include <QThread>
 #include "serverworker.h"
 
 namespace Ui {
@@ -21,13 +24,16 @@ public:
     ~ServerWindow();
 
 private slots:
-    void createThread();
+    //void createThread();
+    void updateClients(QString user);
 
 private:
     Ui::ServerWindow *ui;
     SSLServer *m_sslServer;
-    QList<serverWorker*> m_workers;
-    QList<QThread*> m_threads;
+    QSet<QString> m_users;
+    QThread* m_sslThread;
+    //QList<serverWorker*> m_workers;
+    //QList<QThread*> m_threads;
 };
 
 #endif // SERVERWINDOW_H
