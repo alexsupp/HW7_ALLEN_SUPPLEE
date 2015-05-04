@@ -31,7 +31,7 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
     // in particular the fact that they are self-signed
     connect(m_secureSocket, SIGNAL(sslErrors(QList<QSslError>)), this,
             SLOT(handleSSLError(QList<QSslError>)));
-    connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+
 
     m_secureSocket->connectToHostEncrypted(server, port.toInt());
 
@@ -39,7 +39,7 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
         QMessageBox::critical(m_w, "ERROR", "Error: Couldn't connect to host");
         return;
     }
-    displayCertificateWindow();
+    //displayCertificateWindow();
 
     if(name.isEmpty())
         name=m_secureSocket->peerAddress().toString();
@@ -60,7 +60,7 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
     bool isValid = false;
     int state = QString::fromUtf8(m_secureSocket->readLine()).trimmed().toInt(&isValid,10);
     if (!isValid){
-        qDebug() << "first readline is not a number";
+        qDebug() << "first readline is not a number for the namecheck";
     }
 
     if(state == 4){//on error;
@@ -72,6 +72,8 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
 
     else if(state == 0){//on success join
         m_w->close();
+
+        connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
         m_userWindow->show();
     }
 
@@ -150,6 +152,8 @@ void clientController::readyRead()
             sendUserList();*/
             break;
         case 1: // send username list
+            msg = m_secureSocket->readLine();
+            names = msg.split(",");
             emit userListChanged(names);
             break;
         case 2: // message

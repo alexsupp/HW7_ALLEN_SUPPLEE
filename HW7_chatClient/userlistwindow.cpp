@@ -23,5 +23,6 @@ void userListWindow::on_pushButton_clicked()
 }
 
 void userListWindow::updateUserList(QStringList l){
+    ui->listWidget->clear();
     ui->listWidget->addItems(l);
 }
