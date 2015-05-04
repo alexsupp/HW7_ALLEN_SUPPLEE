@@ -5,6 +5,8 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += network
+QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +15,16 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        chatwindow.cpp
+        chatwindow.cpp \
+    clientconnectwindow.cpp \
+    userlistwindow.cpp \
+    clientcontroller.cpp
 
-HEADERS  += chatwindow.h
+HEADERS  += chatwindow.h \
+    clientconnectwindow.h \
+    userlistwindow.h \
+    clientcontroller.h
 
-FORMS    += chatwindow.ui
+FORMS    += chatwindow.ui \
+    clientconnectwindow.ui \
+    userlistwindow.ui
