@@ -26,10 +26,11 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
     // in particular the fact that they are self-signed
     connect(m_secureSocket, SIGNAL(sslErrors(QList<QSslError>)), this,
             SLOT(handleSSLError(QList<QSslError>)));
+    connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
 
     m_secureSocket->connectToHostEncrypted(server, port.toInt());
 
-    if (!m_secureSocket->waitForEncrypted()){
+    if (!m_secureSocket->waitForEncrypted(3000)){
         QMessageBox::critical(m_w, "ERROR", "Error: Couldn't connect to host");
         return;
     }
@@ -93,4 +94,47 @@ void clientController::handleSSLError(QList<QSslError> errorList)
        qDebug() << "Neet to handle SSL error:" << error;
     }
     m_secureSocket->ignoreSslErrors();
+}
+
+void clientController::readyRead()
+{
+    // We'll loop over every (complete) line of text that the server has sent us:
+    while(m_secureSocket->canReadLine())
+    {
+        //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
+        bool isValid = false;
+        int state = QString::fromUtf8(client->readLine()).trimmed().toInt(&isValid,10);
+        if (!isValid){
+            qDebug() << "first readline is not a number";
+        }
+        QString toUser;
+        QString fromUser;
+        QString msg;
+        switch (state){
+        case 0: // new client joining
+            /*toUser = client->readLine().trimmed();
+            emit updateClients(toUser);
+            m_users[client] = toUser;
+            emit newMessage(QString(toUser + " has joined."));
+            sendUserList();*/
+            break;
+        case 1: // send username list
+            break;
+        case 2: // message
+            toUser = client->readLine().trimmed();
+            msg = client->readAll().trimmed();
+            fromUser = m_users.value(client);
+            emit newMessage(QString(fromUser+"->"+toUser+": "+msg));
+            m_users.key(toUser)->write(QString(fromUser+": "+msg).toUtf8());
+            break;
+        case 3: // disconnect
+            toUser = client->readLine().trimmed();
+            fromUser = m_users[client];
+            //msg = client->readAll().trimmed();
+            m_users.key(toUser)->write(QString(fromUser+" has disconnected!").toUtf8());
+            break;
+        default:
+            qWarning() << "Got bad message from client:" << client->peerAddress().toString() << client->readAll();
+        }
+    }
 }

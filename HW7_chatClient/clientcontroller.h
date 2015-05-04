@@ -19,6 +19,7 @@ public slots:
     void on_tryConnect(QString, QString, QString);
     void handleSSLError(QList<QSslError> errorList);
     void on_msgRcvd();
+    void readyRead();
 
 private:
     QString getCertificateString(const QSslCertificate &cert);
