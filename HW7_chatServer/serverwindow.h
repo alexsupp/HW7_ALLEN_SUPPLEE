@@ -9,7 +9,6 @@
 #include <QSet>
 #include <QString>
 #include <QThread>
-#include "serverworker.h"
 
 namespace Ui {
 class ServerWindow;

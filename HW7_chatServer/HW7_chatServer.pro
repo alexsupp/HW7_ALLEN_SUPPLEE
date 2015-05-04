@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         serverwindow.cpp \
-    SSLServer.cpp \
-    serverworker.cpp
+    SSLServer.cpp
 
 HEADERS  += serverwindow.h \
-    SSLServer.h \
-    serverworker.h
+    SSLServer.h
 
 FORMS    += serverwindow.ui
+
+OTHER_FILES += \
+    cacert.pem \
+    privkey.pem

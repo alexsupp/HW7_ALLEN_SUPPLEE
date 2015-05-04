@@ -33,10 +33,10 @@ void SSLServer::incomingConnection(qintptr socketDescriptor)
 
     // check that the certificate / private key are not null
     if (secureSocket->localCertificate().isNull()) {
-       qDebug() << "WARNING: The local certificate appears to be null! ";
+       qDebug() << "WARNING: The local certificate appears to be null!\n"<<secureSocket->privateKey().type();
     }
     if (secureSocket->privateKey().isNull()) {
-       qDebug() << "WARNING: The private key appears to be null! ";
+       qDebug() << "WARNING: The private key appears to be null!\n"<<secureSocket->privateKey().type();
     }
 
     // debug message on success
@@ -51,56 +51,61 @@ void SSLServer::incomingConnection(qintptr socketDescriptor)
     secureSocket->startServerEncryption();
     qDebug() << "Started encryption for new secure socket";
 
+    qDebug() << "New client from:" << secureSocket->peerAddress().toString();
+
     connect(secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
     connect(secureSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
-}
 
-/*QSslSocket *SSLServer::nextPendingConnection()
-{
-    QSslSocket *secureSocket = NULL;
-    if (m_clients.isEmpty()) {
-        qDebug() << "nextPendingConnection: ERROR: Why is this list empty??";
-    } else {
-        secureSocket = m_clients.last();
-        m_clients.removeLast();
-    }
-    return secureSocket;
-}*/
+
+}
 
 void SSLServer::readyRead()
 {
+    qDebug() << "in readyRead";
     QSslSocket *client = (QSslSocket*)sender();
+    QDataStream in(client);
+    in.setVersion(QDataStream::Qt_4_0);
+    if (!client->waitForEncrypted(1000)){
+        qDebug() << "Waited for 1 second for encryption handshake without success";
+        return;
+    }
+    qDebug() << "Successfully waited for secure handshake...";
     while(client->canReadLine())
     {
-        QString line = QString::fromUtf8(client->readLine()).trimmed();
-        qDebug() << "Read line:" << line;
-
-        QRegExp meRegex("^/me:(.*)$");
-
-        if(meRegex.indexIn(line) != -1)
-        {
-            QString user = meRegex.cap(1);
-            m_users[client] = user;
-            foreach(QSslSocket *client, m_clients)
-                client->write(QString("Server:" + user + " has joined.\n").toUtf8());
+        //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
+        bool isValid = false;
+        int state = QString::fromUtf8(client->readLine()).trimmed().toInt(&isValid,10);
+        if (!isValid){
+            qDebug() << "first readline is not a number";
+        }
+        QString toUser;
+        QString fromUser;
+        QString msg;
+        switch (state){
+        case 0: // new client joining
+            toUser = client->readLine().trimmed();
+            emit updateClients(toUser);
+            m_users[client] = toUser;
+            emit newMessage(QString(toUser + " has joined."));
             sendUserList();
-            emit newMessage(QString("Server:" + user + " has joined.\n"));
-            emit updateClients(user);
-        }
-        else if(m_users.contains(client))
-        {
-            QString message = line;
-            QString user = m_users[client];
-            qDebug() << "User:" << user;
-            qDebug() << "Message:" << message;
-
-            foreach(QSslSocket *otherClient, m_clients)
-                otherClient->write(QString(user + ":" + message + "\n").toUtf8());
-            emit newMessage(QString(user + ":" + message + "\n"));
-        }
-        else
-        {
-            qWarning() << "Got bad message from client:" << client->peerAddress().toString() << line;
+            break;
+        case 1: // send username list
+            break;
+        case 2: // message
+            toUser = client->readLine().trimmed();
+            msg = client->readAll().trimmed();
+            fromUser = m_users.value(client);
+            emit newMessage(QString(fromUser+"->"+toUser+": "+msg));
+            m_users.key(toUser)->write(QString(fromUser+": "+msg).toUtf8());
+            break;
+        case 3: // disconnect
+            toUser = client->readLine().trimmed();
+            fromUser = m_users[client];
+            //msg = client->readAll().trimmed();
+            m_users.key(toUser)->write(QString(fromUser+" has disconnected!").toUtf8());
+            break;
+        default:
+            qWarning() << "Got bad message from client:" << client->peerAddress().toString() << client->readAll();
         }
     }
 }
@@ -120,6 +125,7 @@ void SSLServer::disconnected()
         client->write(QString("Server:" + user + " has left.\n").toUtf8());
     emit newMessage(QString("Server:" + user + " has left.\n").toUtf8());
     emit updateClients(user);
+    client->deleteLater();
 }
 
 void SSLServer::sendUserList()
@@ -129,6 +135,6 @@ void SSLServer::sendUserList()
         userList << user;
 
     foreach(QSslSocket *client, m_clients)
-        client->write(QString("/m_users:" + userList.join(",") + "\n").toUtf8());
+        client->write(QString("1" + userList.join(",") + "\n").toUtf8());
 }
 

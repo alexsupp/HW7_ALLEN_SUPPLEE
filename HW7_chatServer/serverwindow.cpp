@@ -5,7 +5,6 @@
 #include <iostream>
 #include <QThread>
 #include <QDebug>
-#include "serverworker.h"
 
 ServerWindow::ServerWindow(QWidget *parent) :
     QMainWindow(parent),

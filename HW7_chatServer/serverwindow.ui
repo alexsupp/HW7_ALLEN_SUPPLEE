@@ -18,7 +18,11 @@
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
       <item row="2" column="1" colspan="2">
-       <widget class="QTextEdit" name="clientList"/>
+       <widget class="QTextEdit" name="clientList">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item row="0" column="0" colspan="3">
        <widget class="QLabel" name="statusLabel">
@@ -28,7 +32,11 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QTextEdit" name="serverLog"/>
+       <widget class="QTextEdit" name="serverLog">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
