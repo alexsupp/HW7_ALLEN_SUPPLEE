@@ -81,7 +81,7 @@ void SSLServer::readyRead()
         case 0: // new client joining
             toUser = client->readLine().trimmed();
             if (m_usernames.contains(toUser)){
-                client->write("4\nUsername already in use!");
+                client->write("4\nUsername already in use!\n");
                 qDebug() << "Username already in use!";
                 return;
             }
@@ -100,13 +100,13 @@ void SSLServer::readyRead()
             msg = client->readAll().trimmed();
             fromUser = m_users.value(client);
             emit newMessage(QString(fromUser+"->"+toUser+": "+msg));
-            m_users.key(toUser)->write(QString("2\n"+fromUser+": "+msg).toUtf8());
+            m_users.key(toUser)->write(QString("2\n"+fromUser+": "+msg+'\n').toUtf8());
             break;
         case 3: // disconnect
             toUser = client->readLine().trimmed();
             fromUser = m_users[client];
             //msg = client->readAll().trimmed();
-            m_users.key(toUser)->write(QString("3\n"+fromUser+" has disconnected!").toUtf8());
+            m_users.key(toUser)->write(QString("3\n"+fromUser+" has disconnected!\n").toUtf8());
             break;
         default:
             qWarning() << "Got bad message from client:" << client->peerAddress().toString() << client->readAll();
