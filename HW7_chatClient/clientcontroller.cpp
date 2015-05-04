@@ -73,6 +73,7 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
     else if(state == 0){//on success join
         m_w->close();
 
+        m_secureSocket->flush();
         connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
         m_userWindow->show();
     }
@@ -135,13 +136,15 @@ void clientController::readyRead()
     {
         //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
         bool isValid = false;
-        int state = QString::fromUtf8(m_secureSocket->readLine()).trimmed().toInt(&isValid,10);
+        QString msg = QString::fromUtf8(m_secureSocket->readLine()).trimmed();
+        qDebug() << "THIS IS THE MSG: " << msg << "\n";
+        int state = msg.toInt(&isValid,10);
         if (!isValid){
             qDebug() << "first readline is not a number";
+
         }
         QString toUser;
         QString fromUser;
-        QString msg;
         QStringList names;
         switch (state){
         case 0: // new client joining

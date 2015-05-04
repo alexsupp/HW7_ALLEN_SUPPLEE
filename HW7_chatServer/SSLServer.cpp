@@ -138,7 +138,12 @@ void SSLServer::sendUserList()
     foreach(QString user, m_users.values())
         userList << user;
 
-    foreach(QSslSocket *client, m_clients.keys())
-        client->write(QString("1" +'\n' + userList.join(",") + "\n").toUtf8());
+    foreach(QSslSocket *client, m_clients.keys()){
+        QString msg = "1\n";
+        msg.append(userList.join(","));
+        //QString("1" +'\n' + userList.join(",") + "\n");
+        qDebug() << "SERVER MSG: " << msg << "\n";
+        client->write(msg.toUtf8());
+    }
 }
 
