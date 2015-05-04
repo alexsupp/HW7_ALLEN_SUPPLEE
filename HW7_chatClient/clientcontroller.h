@@ -5,6 +5,7 @@
 #include <QtNetwork>
 #include <QTextEdit>
 #include <clientconnectwindow.h>
+#include "userlistwindow.h"
 
 class clientController : public QObject
 {
@@ -14,6 +15,7 @@ public:
     ~clientController();
 
 signals:
+    void userListChanged(QStringList);
 
 public slots:
     void on_tryConnect(QString, QString, QString);
@@ -26,6 +28,7 @@ private:
     QTextEdit certificateWindow;
 
     clientConnectWindow *m_w;
+    userListWindow *m_userWindow;
     QSslSocket *m_secureSocket;
 
     void displayCertificateWindow();
