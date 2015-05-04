@@ -14,6 +14,7 @@ class chatWindow : public QMainWindow
 public:
     explicit chatWindow(QString name, QWidget *parent = 0);
     ~chatWindow();
+    void setMessage(QString msg);
 
 private slots:
     void on_sendButton_clicked();
@@ -21,6 +22,7 @@ private slots:
 
 private:
     Ui::chatWindow *ui;
+    QString m_fromUser;
 };
 
 #endif // CHATWINDOW_H

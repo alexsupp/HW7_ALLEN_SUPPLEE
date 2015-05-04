@@ -7,7 +7,8 @@ chatWindow::chatWindow(QString name, QWidget *parent) :
     ui(new Ui::chatWindow)
 {
     ui->setupUi(this);
-    this->setWindowTitle("Chat with " + name);
+    m_fromUser = name;
+    this->setWindowTitle("Chat with " + m_fromUser);
 }
 
 chatWindow::~chatWindow()
@@ -29,4 +30,9 @@ void chatWindow::on_sendButton_clicked()
 void chatWindow::on_lineEditMessage_textChanged(const QString &arg1)
 {
     ui->msgSizeLabel->setText(QString::number(arg1.size())+"/255");
+}
+
+void chatWindow::setMessage(QString msg)
+{
+    ui->textEditMessages->append(m_fromUser + ": " + msg);
 }

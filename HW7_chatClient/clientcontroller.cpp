@@ -12,13 +12,15 @@ clientController::clientController(QObject *parent) : QObject(parent)
 
 
     connect(this, SIGNAL(userListChanged(QStringList)), m_userWindow, SLOT(updateUserList(QStringList)));
+    connect(m_userWindow, SIGNAL(tryChatConnect(QString)), this, SLOT(on_tryStartChat(QString)));
+    connect(this, SIGNAL(newMessage(QString,QString)), this, SLOT(on_newMessage(QString,QString)));
 
     m_w->show();
 }
 
 clientController::~clientController()
 {
-
+    m_secureSocket->close();
 }
 
 
@@ -74,12 +76,36 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
         m_w->close();
 
         m_secureSocket->flush();
+        m_clientName = name;
         connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+        m_userWindow->setWindowTitle(name.trimmed() + "'s user list");
         m_userWindow->show();
     }
 
     else
         qDebug()<<"a bad state was received trying to connect\n";
+}
+
+void clientController::on_tryStartChat(QString name)
+{
+    QString msg = "2\n" + name + "\nNew chat with " + m_clientName + "\n";
+    m_secureSocket->write(msg.trimmed().toUtf8());
+    m_chatWindow = new chatWindow(name);
+
+    m_chatList[name] = m_chatWindow;
+
+    m_chatWindow->show();
+}
+
+void clientController::on_newMessage(QString fromUser, QString msg)
+{
+    if(!m_chatList.contains(fromUser)){
+        m_chatWindow = new chatWindow(fromUser);
+        m_chatList[fromUser] = m_chatWindow;
+    }
+
+    m_chatWindow->show();
+    m_chatList[fromUser]->setMessage(msg);
 }
 
 QString clientController::getCertificateString(const QSslCertificate &cert)
@@ -113,12 +139,6 @@ void clientController::displayCertificateWindow()
     localCertificateInformation += getCertificateString(localCertificate);
     certificateWindow.append(localCertificateInformation);
     certificateWindow.show();
-}
-
-
-void clientController::on_msgRcvd()
-{
-
 }
 
 void clientController::handleSSLError(QList<QSslError> errorList)
@@ -157,14 +177,13 @@ void clientController::readyRead()
         case 1: // send username list
             msg = m_secureSocket->readLine();
             names = msg.split(",");
+            names.last().remove('\n');
             emit userListChanged(names);
             break;
         case 2: // message
-        /*    toUser = client->readLine().trimmed();
-            msg = client->readAll().trimmed();
-            fromUser = m_users.value(client);
-            emit newMessage(QString(fromUser+"->"+toUser+": "+msg));
-            m_users.key(toUser)->write(QString(fromUser+": "+msg).toUtf8());*/
+            fromUser = m_secureSocket->readLine().trimmed();
+            msg = m_secureSocket->readAll().trimmed();
+            emit newMessage(fromUser, msg);
             break;
         case 3: // disconnect
             /*toUser = client->readLine().trimmed();

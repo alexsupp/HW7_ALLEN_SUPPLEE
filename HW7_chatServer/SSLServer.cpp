@@ -100,7 +100,7 @@ void SSLServer::readyRead()
             msg = client->readAll().trimmed();
             fromUser = m_users.value(client);
             emit newMessage(QString(fromUser+"->"+toUser+": "+msg));
-            m_users.key(toUser)->write(QString("2\n"+fromUser+": "+msg+'\n').toUtf8());
+            m_users.key(toUser)->write(QString("2\n"+fromUser+"\n"+msg+'\n').toUtf8());
             break;
         case 3: // disconnect
             toUser = client->readLine().trimmed();
@@ -136,11 +136,12 @@ void SSLServer::sendUserList()
 {
     QStringList userList;
     foreach(QString user, m_users.values())
-        userList << user;
+        userList << user.trimmed();
 
     foreach(QSslSocket *client, m_clients.keys()){
         QString msg = "1\n";
         msg.append(userList.join(","));
+        msg.append("\n");
         //QString("1" +'\n' + userList.join(",") + "\n");
         qDebug() << "SERVER MSG: " << msg << "\n";
         client->write(msg.toUtf8());
