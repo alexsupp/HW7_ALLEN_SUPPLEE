@@ -61,7 +61,7 @@ QString clientConnectWindow::getServer()
 
 QString clientConnectWindow::getPort()
 {
-    return ui->lineEdit->text().trimmed();
+    return ui->lineEdit_2->text().trimmed();
 }
 
 QString clientConnectWindow::getUserName()
