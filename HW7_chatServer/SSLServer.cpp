@@ -89,6 +89,7 @@ void SSLServer::readyRead()
             m_users[client] = toUser;
             m_usernames.insert(toUser);
             emit newMessage(QString(toUser + " has joined."));
+            client->write("0");
             sendUserList();
             break;
         case 1: // send username list
