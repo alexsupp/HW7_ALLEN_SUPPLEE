@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QSslSocket>
 #include <QSslKey>
+#include <QThread>
 #include <QList>
 #include <QSet>
 #include <QMap>
@@ -33,7 +34,7 @@ protected:
     void incomingConnection(qintptr socketDescriptor);
 private:
     // a list to keep track of the sockets that we have created
-    QSet<QSslSocket *> m_clients;
+    QHash<QSslSocket *,QThread*> m_clients;
     QMap<QSslSocket*,QString> m_users;
 };
 

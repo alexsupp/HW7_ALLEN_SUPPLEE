@@ -19,10 +19,11 @@ void SSLServer::incomingConnection(qintptr socketDescriptor)
     // On an incoming connection we want
     // to create a new secure socket. 
     QSslSocket *secureSocket = new QSslSocket;
+    QThread *thread = new QThread();
 
     // Add to list so that we can find it with
     // nextConnection
-    m_clients.insert(secureSocket);
+    m_clients.insert(secureSocket,thread);
 
     // We need to read in the local certificate and 
     // and the private key that we generated 
@@ -56,6 +57,8 @@ void SSLServer::incomingConnection(qintptr socketDescriptor)
     connect(secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
     connect(secureSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 
+    secureSocket->moveToThread(thread);
+    thread->start();
 
 }
 
@@ -63,13 +66,13 @@ void SSLServer::readyRead()
 {
     qDebug() << "in readyRead";
     QSslSocket *client = (QSslSocket*)sender();
-    QDataStream in(client);
-    in.setVersion(QDataStream::Qt_4_0);
-    if (!client->waitForEncrypted(1000)){
-        qDebug() << "Waited for 1 second for encryption handshake without success";
-        return;
-    }
-    qDebug() << "Successfully waited for secure handshake...";
+//    QDataStream in(client);
+//    in.setVersion(QDataStream::Qt_4_0);
+//    if (!client->waitForEncrypted(1000)){
+//        qDebug() << "Waited for 1 second for encryption handshake without success";
+//        return;
+//    }
+//    qDebug() << "Successfully waited for secure handshake...";
     while(client->canReadLine())
     {
         //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
@@ -115,15 +118,14 @@ void SSLServer::disconnected()
     QSslSocket *client = (QSslSocket*)sender();
     qDebug() << "Client disconnected:" << client->peerAddress().toString();
 
+    QThread *thread = m_clients[client];
     m_clients.remove(client);
 
     QString user = m_users[client];
     m_users.remove(client);
 
     sendUserList();
-    foreach(QSslSocket *client, m_clients)
-        client->write(QString("Server:" + user + " has left.\n").toUtf8());
-    emit newMessage(QString("Server:" + user + " has left.\n").toUtf8());
+    emit newMessage(QString(user + " has left.\n").toUtf8());
     emit updateClients(user);
     client->deleteLater();
 }
@@ -134,7 +136,7 @@ void SSLServer::sendUserList()
     foreach(QString user, m_users.values())
         userList << user;
 
-    foreach(QSslSocket *client, m_clients)
+    foreach(QSslSocket *client, m_clients.keys())
         client->write(QString("1" + userList.join(",") + "\n").toUtf8());
 }
 
