@@ -106,7 +106,7 @@ void SSLServer::readyRead()
             toUser = client->readLine().trimmed();
             fromUser = m_users[client];
             //msg = client->readAll().trimmed();
-            m_users.key(toUser)->write(QString("3\n"+fromUser+" has disconnected!\n").toUtf8());
+            m_users.key(toUser)->write(QString("3\n"+fromUser+"\n").toUtf8());
             break;
         default:
             qWarning() << "Got bad message from client:" << client->peerAddress().toString() << client->readAll();
@@ -125,6 +125,7 @@ void SSLServer::disconnected()
     QString user = m_users[client];
     m_usernames.remove(user);
     m_users.remove(client);
+    
 
     sendUserList();
     emit newMessage(QString(user + " has left.\n").toUtf8());
