@@ -66,13 +66,6 @@ void SSLServer::readyRead()
 {
     qDebug() << "in readyRead";
     QSslSocket *client = (QSslSocket*)sender();
-//    QDataStream in(client);
-//    in.setVersion(QDataStream::Qt_4_0);
-//    if (!client->waitForEncrypted(1000)){
-//        qDebug() << "Waited for 1 second for encryption handshake without success";
-//        return;
-//    }
-//    qDebug() << "Successfully waited for secure handshake...";
     while(client->canReadLine())
     {
         //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
@@ -87,12 +80,19 @@ void SSLServer::readyRead()
         switch (state){
         case 0: // new client joining
             toUser = client->readLine().trimmed();
+            if (m_usernames.contains(toUser)){
+                client->write("4\nUsername already in use!");
+                qDebug() << "Username already in use!";
+                return;
+            }
             emit updateClients(toUser);
             m_users[client] = toUser;
+            m_usernames.insert(toUser);
             emit newMessage(QString(toUser + " has joined."));
             sendUserList();
             break;
         case 1: // send username list
+            sendUserList();
             break;
         case 2: // message
             toUser = client->readLine().trimmed();
@@ -122,6 +122,7 @@ void SSLServer::disconnected()
     m_clients.remove(client);
 
     QString user = m_users[client];
+    m_usernames.remove(user);
     m_users.remove(client);
 
     sendUserList();

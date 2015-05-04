@@ -36,6 +36,7 @@ private:
     // a list to keep track of the sockets that we have created
     QHash<QSslSocket *,QThread*> m_clients;
     QMap<QSslSocket*,QString> m_users;
+    QSet<QString> m_usernames;
 };
 
 #endif // SSLSERVER_H
