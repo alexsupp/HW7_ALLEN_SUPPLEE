@@ -47,30 +47,36 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
     QString msg = "0\n" + name + "\n";
     m_secureSocket->write(msg.toUtf8());
 
-    while(m_secureSocket->canReadLine())
-    {
-        //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
-        bool isValid = false;
-        int state = QString::fromUtf8(m_secureSocket->readLine()).trimmed().toInt(&isValid,10);
-        if (!isValid){
-            qDebug() << "first readline is not a number";
-        }
-
-        if(state == 4){//on error;
-            QMessageBox dupName;
-            dupName.setText(m_secureSocket->readLine().trimmed());
-            dupName.exec();
-            return;
-        }
-
-        else if(state == 0){//on success join
-            m_w->close();
-            m_userWindow->show();
-        }
-
-        else
-            qDebug()<<"a bad state was received trying to connect\n";
+    if(!m_secureSocket->waitForReadyRead(15000)){
+        QMessageBox timeOut;
+        timeOut.setText("The server timed out on this request try again");
+        timeOut.exec();
+        return;
     }
+
+
+
+    //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
+    bool isValid = false;
+    int state = QString::fromUtf8(m_secureSocket->readLine()).trimmed().toInt(&isValid,10);
+    if (!isValid){
+        qDebug() << "first readline is not a number";
+    }
+
+    if(state == 4){//on error;
+        QMessageBox dupName;
+        dupName.setText(m_secureSocket->readLine().trimmed());
+        dupName.exec();
+        return;
+    }
+
+    else if(state == 0){//on success join
+        m_w->close();
+        m_userWindow->show();
+    }
+
+    else
+        qDebug()<<"a bad state was received trying to connect\n";
 }
 
 QString clientController::getCertificateString(const QSslCertificate &cert)
