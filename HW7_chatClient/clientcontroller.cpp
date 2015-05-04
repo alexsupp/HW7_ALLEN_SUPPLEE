@@ -56,10 +56,9 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
             qDebug() << "first readline is not a number";
         }
 
-        QString msg;
         if(state == 4){//on error;
             QMessageBox dupName;
-            dupName.setText("Please make sure that the name is not already taken.");
+            dupName.setText(m_secureSocket->readLine().trimmed());
             dupName.exec();
             return;
         }
@@ -68,6 +67,9 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
             m_w->close();
             m_userWindow->show();
         }
+
+        else
+            qDebug()<<"a bad state was received trying to connect\n";
     }
 }
 
@@ -132,6 +134,7 @@ void clientController::readyRead()
         QString toUser;
         QString fromUser;
         QString msg;
+        QStringList names;
         switch (state){
         case 0: // new client joining
             /*toUser = client->readLine().trimmed();
@@ -141,9 +144,7 @@ void clientController::readyRead()
             sendUserList();*/
             break;
         case 1: // send username list
-            QStringList names;
-
-            emit userListChanged(QStringList);
+            emit userListChanged(names);
             break;
         case 2: // message
         /*    toUser = client->readLine().trimmed();
