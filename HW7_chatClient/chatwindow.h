@@ -16,6 +16,9 @@ public:
     ~chatWindow();
     void setMessage(QString msg);
 
+signals:
+    void sendMessage(QString, QString);
+
 private slots:
     void on_sendButton_clicked();
     void on_lineEditMessage_textChanged(const QString &arg1);

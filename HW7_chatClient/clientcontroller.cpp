@@ -56,8 +56,6 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
         return;
     }
 
-
-
     //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
     bool isValid = false;
     int state = QString::fromUtf8(m_secureSocket->readLine()).trimmed().toInt(&isValid,10);
@@ -77,6 +75,15 @@ void clientController::on_tryConnect(QString server, QString port, QString name)
 
         m_secureSocket->flush();
         m_clientName = name;
+
+        msg = m_secureSocket->readLine();
+        if(!msg.trimmed().compare("1")){
+            msg = m_secureSocket->readLine();
+            QStringList names = msg.split(",");
+            names.last().remove('\n');
+            emit userListChanged(names);
+        }
+
         connect(m_secureSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
         m_userWindow->setWindowTitle(name.trimmed() + "'s user list");
         m_userWindow->show();
@@ -94,18 +101,38 @@ void clientController::on_tryStartChat(QString name)
 
     m_chatList[name] = m_chatWindow;
 
+    connect(m_chatWindow, SIGNAL(sendMessage(QString, QString)), this, SLOT(on_sendMessage(QString, QString)));
+
+    m_chatWindow->setMessage("New chat with " + name);
+
     m_chatWindow->show();
 }
 
-void clientController::on_newMessage(QString fromUser, QString msg)
+void clientController::on_newMessage(QString otherUser, QString msg)
 {
-    if(!m_chatList.contains(fromUser)){
-        m_chatWindow = new chatWindow(fromUser);
-        m_chatList[fromUser] = m_chatWindow;
+    if(!m_chatList.contains(otherUser)){
+        m_chatWindow = new chatWindow(otherUser);
+        m_chatList[otherUser] = m_chatWindow;
+
+        connect(m_chatWindow, SIGNAL(sendMessage(QString, QString)), this, SLOT(on_sendMessage(QString, QString)));
+
+        m_chatList[otherUser]->setMessage(msg);
     }
 
-    m_chatWindow->show();
-    m_chatList[fromUser]->setMessage(msg);
+    else if(!msg.trimmed().isEmpty()){
+        msg.prepend(otherUser + ": ");
+        m_chatList[otherUser]->setMessage(msg);
+    }
+
+    if(m_chatWindow->isHidden())
+        m_chatWindow->show();
+
+}
+
+void clientController::on_sendMessage(QString otherUser, QString msg)
+{
+    msg.prepend("2\n" + otherUser + "\n");
+    m_secureSocket->write(msg.trimmed().toUtf8());
 }
 
 QString clientController::getCertificateString(const QSslCertificate &cert)
@@ -174,7 +201,7 @@ void clientController::readyRead()
             emit newMessage(QString(toUser + " has joined."));
             sendUserList();*/
             break;
-        case 1: // send username list
+        case 1: // receive username list
             msg = m_secureSocket->readLine();
             names = msg.split(",");
             names.last().remove('\n');

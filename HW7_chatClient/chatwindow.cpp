@@ -25,6 +25,7 @@ void chatWindow::on_sendButton_clicked()
 
     ui->textEditMessages->append("you: " + msg);
     ui->lineEditMessage->clear();
+    emit sendMessage(m_fromUser, msg);
 }
 
 void chatWindow::on_lineEditMessage_textChanged(const QString &arg1)
@@ -34,5 +35,5 @@ void chatWindow::on_lineEditMessage_textChanged(const QString &arg1)
 
 void chatWindow::setMessage(QString msg)
 {
-    ui->textEditMessages->append(m_fromUser + ": " + msg);
+    ui->textEditMessages->append(msg);
 }

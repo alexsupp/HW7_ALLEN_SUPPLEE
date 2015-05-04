@@ -25,6 +25,7 @@ public slots:
     void handleSSLError(QList<QSslError> errorList);
     void on_tryStartChat(QString);
     void on_newMessage(QString, QString);
+    void on_sendMessage(QString, QString);
     void readyRead();
 
 private:
