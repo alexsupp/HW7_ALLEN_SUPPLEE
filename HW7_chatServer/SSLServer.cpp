@@ -121,7 +121,7 @@ void SSLServer::disconnected()
     QSslSocket *client = (QSslSocket*)sender();
     qDebug() << "Client disconnected:" << client->peerAddress().toString();
 
-    QThread *thread = m_clients[client];
+    //QThread *thread = m_clients[client];
     m_clients.remove(client);
 
     QString user = m_users[client];
