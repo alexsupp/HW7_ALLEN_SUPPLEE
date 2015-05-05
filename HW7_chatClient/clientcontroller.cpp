@@ -14,6 +14,7 @@ clientController::clientController(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(userListChanged(QStringList)), m_userWindow, SLOT(updateUserList(QStringList)));
     connect(m_userWindow, SIGNAL(tryChatConnect(QString)), this, SLOT(on_tryStartChat(QString)));
     connect(this, SIGNAL(newMessage(QString,QString)), this, SLOT(on_newMessage(QString,QString)));
+    connect(this, SIGNAL(rcvDisconnect(QString, QString)), this, SLOT(on_rcvDisconnect(QString,QString)));
 
     m_w->show();
 }
@@ -102,6 +103,7 @@ void clientController::on_tryStartChat(QString name)
     m_chatList[name] = m_chatWindow;
 
     connect(m_chatWindow, SIGNAL(sendMessage(QString, QString)), this, SLOT(on_sendMessage(QString, QString)));
+    connect(m_chatWindow, SIGNAL(tryDisconnect(QString,QString)), this, SLOT(on_tryDisconnect(QString, QString)));
 
     m_chatWindow->setMessage("New chat with " + name);
 
@@ -115,6 +117,7 @@ void clientController::on_newMessage(QString otherUser, QString msg)
         m_chatList[otherUser] = m_chatWindow;
 
         connect(m_chatWindow, SIGNAL(sendMessage(QString, QString)), this, SLOT(on_sendMessage(QString, QString)));
+        connect(m_chatWindow, SIGNAL(tryDisconnect(QString,QString)), this, SLOT(on_tryDisconnect(QString, QString)));
 
         m_chatList[otherUser]->setMessage(msg);
     }
@@ -127,6 +130,20 @@ void clientController::on_newMessage(QString otherUser, QString msg)
     if(m_chatWindow->isHidden())
         m_chatWindow->show();
 
+}
+
+void clientController::on_rcvDisconnect(QString otherUser, QString msg)
+{
+    m_chatWindow = m_chatList[otherUser];
+    m_chatList.remove(otherUser);
+    m_chatWindow->on_rcvDisconnect(msg);
+}
+
+void clientController::on_tryDisconnect(QString otherUser, QString msg)
+{
+    msg.prepend("3\n" + otherUser + "\n");
+    m_secureSocket->write(msg.trimmed().toUtf8());
+    m_chatList.remove(otherUser);
 }
 
 void clientController::on_sendMessage(QString otherUser, QString msg)
@@ -213,10 +230,13 @@ void clientController::readyRead()
             emit newMessage(fromUser, msg);
             break;
         case 3: // disconnect
-            /*toUser = client->readLine().trimmed();
-            fromUser = m_users[client];
-            //msg = client->readAll().trimmed();
-            m_users.key(toUser)->write(QString(fromUser+" has disconnected!").toUtf8());*/
+            fromUser = m_secureSocket->readLine().trimmed();
+            //m_chatList.value(fromUser)->deleteLater();
+            msg = m_secureSocket->readAll().trimmed();
+            emit rcvDisconnect(fromUser, msg);
+            //msg = "User " + fromUser + " has disconnected from this chat session";
+            //emit a signal to show disconnect on window like connect
+            //emit newMessage(fromUser, msg);
             break;
         default:
             qWarning() << "Got bad message from client:" << m_secureSocket->peerAddress().toString() << m_secureSocket->readAll();

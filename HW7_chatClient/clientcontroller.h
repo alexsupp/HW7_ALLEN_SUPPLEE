@@ -19,6 +19,7 @@ public:
 signals:
     void userListChanged(QStringList);
     void newMessage(QString, QString);
+    void rcvDisconnect(QString, QString);
 
 public slots:
     void on_tryConnect(QString, QString, QString);
@@ -26,6 +27,8 @@ public slots:
     void on_tryStartChat(QString);
     void on_newMessage(QString, QString);
     void on_sendMessage(QString, QString);
+    void on_rcvDisconnect(QString, QString);
+    void on_tryDisconnect(QString, QString);
     void readyRead();
 
 private:

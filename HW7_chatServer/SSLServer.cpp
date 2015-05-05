@@ -70,9 +70,11 @@ void SSLServer::readyRead()
     {
         //qDebug() << client->readAll();fromUtf8(client->readLine()).trimmed()
         bool isValid = false;
-        int state = QString::fromUtf8(client->readLine()).trimmed().toInt(&isValid,10);
+        QString tempMsg = QString::fromUtf8(client->readLine());
+        int state = tempMsg.trimmed().toInt(&isValid,10);
         if (!isValid){
             qDebug() << "first readline is not a number";
+            qDebug() << "IT IS: " + tempMsg;
         }
         QString toUser;
         QString fromUser;
@@ -105,8 +107,8 @@ void SSLServer::readyRead()
         case 3: // disconnect
             toUser = client->readLine().trimmed();
             fromUser = m_users[client];
-            //msg = client->readAll().trimmed();
-            m_users.key(toUser)->write(QString("3\n"+fromUser+"\n").toUtf8());
+            msg = client->readAll().trimmed();
+            m_users.key(toUser)->write(QString("3\n"+fromUser+"\n"+msg+'\n').toUtf8());
             break;
         default:
             qWarning() << "Got bad message from client:" << client->peerAddress().toString() << client->readAll();
@@ -144,7 +146,7 @@ void SSLServer::sendUserList()
         msg.append(userList.join(","));
         msg.append("\n");
         //QString("1" +'\n' + userList.join(",") + "\n");
-        qDebug() << "SERVER MSG: " << msg << "\n";
+        //qDebug() << "SERVER MSG: " << msg << "\n";
         client->write(msg.toUtf8());
     }
 }
