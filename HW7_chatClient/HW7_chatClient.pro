@@ -1,7 +1,8 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-04-29T21:16:48
-#
+# chatClient Project created by QtCreator 2015-04-29T21:16:48
+# Created By Brock Allen and Alex Supplee
+# Created for ECE 3574
 #-------------------------------------------------
 
 QT       += core gui

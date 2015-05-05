@@ -1,7 +1,8 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-04-29T20:58:54
-#
+# chatServer Project created by QtCreator 2015-04-29T20:58:54
+# Created By Brock Allen and Alex Supplee
+# Created for ECE 3574
 #-------------------------------------------------
 
 QT       += core gui network
